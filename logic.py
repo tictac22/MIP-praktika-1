@@ -1,49 +1,85 @@
-import time
 import random
 import math
 from typing import List 
-counterId = 0
-class Node:
-    def __init__(self, number: int, score: int, bank: int, divisor: int, is_first_player_move: bool):
-        global counterId
-        counterId += 1
-        self.id = counterId
 
+class Node:
+    """
+    Represents a state in the game tree.
+    Each Node stores:
+      - number (the current integer in our the ),
+      - score (the 'common score'),
+      - bank  (the 'bank' value),
+      - divisor (the last divisor used to reach this node),
+      - min_max_value (used by minimax / alpha-beta search),
+      - is_first_player_move (boolean indicating whose turn it is),
+      - children (list of Node objects we can move to from here).
+    """
+    def __init__(self, number: int, score: int, bank: int, divisor: int, is_first_player_move: bool):
         self.number = number
         self.score = score
         self.bank = bank
         self.divisor = divisor
+
+        # min_max_value: used during minimax or alpha-beta. If it's first player's turn, we initialize to +∞,
+        # because the MAX player tries to get the highest value.
+        # If it's second player's turn, we initialize to -∞, because the MIN player tries to get the lowest value.
         self.min_max_value = math.inf if is_first_player_move else -math.inf
+
+        # is_first_player_move: True if it's the first player's turn (the "maximizing" player),
+        # False if it's the second player's turn (the "minimizing" player).
         self.is_first_player_move = is_first_player_move
         
+        # children: holds the next possible states (Node objects) after making valid moves.
         self.children = []
 
     def make_move(self, divisor: int) -> None:
+        """
+        Applies a move to the current node by dividing the 'number' by 'divisor' (3, 4, or 5).
+        Then it updates the bank if the resulting 'number' ends with 0 or 5.
+        Also updates the score: +1 if the new number is even, -1 if it's odd.
+        Finally, toggles is_first_player_move to switch turns.
+        """
         self.number //= divisor
 
+        # Check the last digit. If it's '0' or '5', increment the bank by 1.
         last_digit = str(self.number)[-1]
         if last_digit in ('0', '5'):
             self.bank += 1
         
+        # If our new number is even, increment score; if odd, decrement score.
         if self.number % 2 == 0:
             self.score += 1
         else:
             self.score -= 1
 
+        # Toggle which player's turn it is.
         self.is_first_player_move = not self.is_first_player_move
 
     def compute_final_score(self) -> int:
+        """
+        Computes the final score at the end of the game, based on the rules:
+          - If 'score' is even, subtract the bank from it.
+          - If 'score' is odd, add the bank to it.
+        This is called when no more moves are possible (leaf node).
+        """
         if self.score % 2 == 0:
             return self.score - self.bank
         else:
             return self.score + self.bank
     
     def get_possible_moves(self) -> List[int]:
+        """
+        Returns a list of valid divisors (3,4,5) that can divide self.number with no remainder.
+        """
         return [number for number in [3, 4, 5] if self.number % number == 0]
 
 
-
 def create_child(parent: Node, divisor: int) -> Node:
+    """
+    Creates a NEW child Node from 'parent', applying the given 'divisor'.
+    - We copy the relevant fields from the parent (number, score, bank, is_first_player_move).
+    - Then we call child.make_move(divisor) to apply that move.
+    """
     child = Node(
         number=parent.number,
         score=parent.score,
@@ -56,16 +92,23 @@ def create_child(parent: Node, divisor: int) -> Node:
 
 
 def generate_tree(root: Node) -> None:
-
+    """
+    Builds the game tree (all possible future states) starting from 'root'.
+    We use a queue for breadth-first expansion. For each node:
+      - We try dividing the current number by 3, 4, 5 (if valid),
+      - Create a child node for each valid move,
+      - Make sure we don't generate duplicates (by storing states in a dict),
+      - Then add the child to our queue as well.
+    """
     queue = [root]
     generated_states = {}
 
     while queue:
         node = queue.pop(0)
-
         for i in [3, 4, 5]:
             if node.number % i == 0:
                 child = create_child(node, i)
+                # We define a key so we don't create duplicate children that are essentially the same state
                 key = (child.number, child.score, child.bank, child.is_first_player_move, child.divisor)
                 if key not in generated_states:
                     generated_states[key] = True
@@ -74,188 +117,104 @@ def generate_tree(root: Node) -> None:
 
 
 def minimax(node: Node, is_first_player_move: bool) -> None:
+    """
+    A basic Minimax algorithm (no alpha-beta pruning).
+    - If a node has no children => it's a leaf, so we compute its final score.
+      If it's even => we consider that +1, else -1, as an example.
+    - Otherwise, we recursively call minimax on each child, 
+      and then pick the max or min among them, depending on which player's turn it is.
+    """
+    # Base case: if no children, it's a leaf => compute the final score
     if not node.children:
         final_score = node.compute_final_score()
+        # Even final => +1, Odd => -1
         if final_score % 2 == 0:
             node.min_max_value = 1
         else:
             node.min_max_value = -1
         
+    # Otherwise, explore children
     for child in node.children:
+        # Switch turn: if it's currently first player's move, next is second player's move
         minimax(child, not is_first_player_move)
+
+    # After computing child's values, pick max or min:
+    if node.children:
         if is_first_player_move:
+            # The 'maximizing' player => choose the best (max) among children
             node.min_max_value = max(child.min_max_value for child in node.children)
         else:
+            # The 'minimizing' player => choose the worst (min) among children
             node.min_max_value = min(child.min_max_value for child in node.children)
-
-def print_tree(root: Node) -> None:
-    queue = [root]
-    while queue:
-        node = queue.pop(0)
-        if not node.children:
-            print(f" Number : {node.number} Score : {node.score} Bank : {node.bank}, counter : {node.id}, final_score: {node.compute_final_score()}, min_max_value: {node.min_max_value}")
-        else:
-            print(
-                f"Number : {node.number} " 
-                f"Score : {node.score} " 
-                f"Bank : {node.bank} "
-                f"counter : {node.id} "
-                f"min_max_value: {node.min_max_value} "
-                f"children:{ [children.number for children in node.children] } "
-                f"children_min_max_value: { [children.min_max_value for children in node.children] } "
-                f"children_score : {[children.score for children in node.children ]} "
-                f"children_bank : {[children.bank for children in node.children ]} "
-
-            )
-           
-        for child in node.children:
-            queue.append(child)
-    
-
-
-def console_game(root: Node, first_move: bool) -> None:
-    print("Welcome to the game")
-    print(f"The game starts with the number {root_number}")
-
-    current_node = root
-    is_first_player_move = first_move
-    output_message = "Player" if is_first_player_move else "Computer"
-
-    while True:
-        dividable_number = 0
-        print(f"Current number : {current_node.number} Current score : {current_node.score} Current bank : {current_node.bank}")	
-        if is_first_player_move:
-            available_moves = [number for number in [3, 4, 5] if current_node.number % number == 0]
-            dividable_number = input(f"Enter dividable number {available_moves}: ")
-
-            dividable_number = int(dividable_number)
-            print("Player chose", dividable_number)
-        else:
-            print("Computer thinking")
-            best_move = 0
-            for child in current_node.children:
-                if child.min_max_value == -1:
-                    best_move = child.number
-                    break
-            if best_move == 0:
-                print("There are no best moves for computer")
-                best_move = random.choice([number for number in [3, 4, 5] if current_node.number % number == 0])
-            best_move = int(current_node.number / best_move)
-            print("Computer chose", best_move)
-
-            dividable_number = best_move
-
-           
-
-        if current_node.number % dividable_number != 0:
-            print("Invalid move")
-            continue
-
-        resulted_number = current_node.number // dividable_number
-
-        for i in current_node.children:
-            if i.number == resulted_number:
-                current_node = i
-                break
-        
-        is_first_player_move = not is_first_player_move
-        if not current_node.children:
-            print(f"Game over")
-            if current_node.compute_final_score() % 2 == 0:
-                print(f"{output_message} wins")
-            else:
-                print(f"{output_message} loses")
-            print(f" Number: {current_node.number} Score: {current_node.score} Bank: {current_node.bank} Final score : {current_node.compute_final_score()} ")
-            break
 
 
 def generate_random_numbers() -> List[int]:
+    """
+    Generates 5 random numbers in the range [40020..49980] (stepping by 60)
+    because 60 is the LCM of (3,4,5). Then chooses any 5 distinct ones.
+    This ensures each generated number is divisible by 3,4,5.
+    """
     possible_numbers = []
     for i in range(40_020, 49_980 + 1, 60):
         possible_numbers.append(i)
     return random.sample(possible_numbers, 5)
-random_numbers = generate_random_numbers()
 
-
-def alpha_beta(node, alpha, beta, is_maximizing):
+def alpha_beta(node: Node, alpha: int, beta: int, is_maximizing: bool) -> int:
     """
-    node: the current game state (Node).
-    alpha: the highest (best) value we can guarantee so far for the MAX player.
-    beta: the lowest (best) value we can guarantee so far for the MIN player.
-    is_maximizing: True if we're at a MAX level; False if at a MIN level.
+    Implementation of the Alpha-Beta search (an optimization over plain Minimax).
+    node:        the current Node in the game tree.
+    alpha:       the highest (best) value so far for the maximizing player (initially very small).
+    beta:        the lowest (best) value so far for the minimizing player (initially very large).
+    is_maximizing: True if it's the maximizing player's turn, False if it's the minimizing player's turn.
+    
+    The function returns the 'min_max_value' for 'node'.
+    
+    Pruning logic:
+    - If alpha >= beta at a MAX node, we stop exploring (beta cutoff).
+    - If beta <= alpha at a MIN node, we stop exploring (alpha cutoff).
     """
 
-    # 1) If node is a leaf, we directly compute a final or heuristic score:
+    # 1) If node is a leaf (no children), compute final score:
     if not node.children:
-        # Suppose we map final_score to +1 or -1, or any heuristic you prefer:
         final_score = node.compute_final_score()
         if final_score % 2 == 0:
-            node.min_max_value = +1    # Example: even final => +1
+            node.min_max_value = +1
         else:
-            node.min_max_value = -1    # Example: odd final => -1
+            node.min_max_value = -1
         return node.min_max_value
 
-    # 2) If it’s the MAX player's turn (alfa node):
-
-
-    #       48300
-    #    /     \     \
-    #  16100   12075  96600 
-    #  /   \
-    # 4025  3220  
-    # /      /  X
-    # 805   805 644
-    # /       /   \ 
-    # 161    161   161
-    #
-    #
-    #
+    # 2) If it's the MAX player's turn:
     if is_maximizing:
-        value = -math.inf  # Start lower than all possible values
+        value = -math.inf
         for child in node.children:
-            child_val = alpha_beta(child, alpha, beta, False)  # Recur as MIN
+            # Recurse with is_maximizing=False, because we alternate turns
+            child_val = alpha_beta(child, alpha, beta, False)
+            # Keep track of the best value so far
             if child_val > value:
                 value = child_val
-            # Now we update alpha:
+            # Update alpha if we found a bigger value
             if value > alpha:
                 alpha = value
-            # *** Alfa-nogriešana (beta ≤ alpha) check ***
-            # Because we’re in a MAX node, we watch if alpha >= beta.
-            # If so, we can prune (break) => no need to explore more children.
+            # If alpha >= beta, we can stop searching further children (beta cut)
             if alpha >= beta:
                 break
         node.min_max_value = value
         return value
 
-    # 3) If it’s the MIN player's turn (beta node):
+    # 3) Otherwise, it's the MIN player's turn:
     else:
-        value = math.inf  # Start higher than all possible values
+        value = math.inf
         for child in node.children:
-            child_val = alpha_beta(child, alpha, beta, True)  # Recur as MAX
+            # Recurse with is_maximizing=True
+            child_val = alpha_beta(child, alpha, beta, True)
+            # Keep track of the smallest value so far
             if child_val < value:
                 value = child_val
-            # Now we update beta:
+            # Update beta if we found a smaller value
             if value < beta:
                 beta = value
-            # *** Beta-nogriešana (beta ≤ alpha) check ***
-            # Because we’re in a MIN node, we watch if beta <= alpha.
-            # If so, we can prune (break).
+            # If beta <= alpha, we can stop searching further (alpha cut)
             if beta <= alpha:
                 break
         node.min_max_value = value
         return value
-
-
-
-if __name__ == "__main__":
-    #root_number = random.choice(random_numbers)
-    root_number = 48_300
-    print(f"Root number is {root_number}")
-
-    is_first_player_move = True
-    root = Node(root_number, 0, 0, 0, is_first_player_move)
-    generate_tree(root)
-    # minimax(root, is_first_player_move)
-    alpha_beta(root, -math.inf, math.inf, is_first_player_move)
-    print_tree(root)
-    console_game(root, is_first_player_move)

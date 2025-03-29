@@ -1,8 +1,6 @@
 import tkinter as tk
-from logic import generate_random_numbers, Node, generate_tree, minimax, alpha_beta, console_game, print_tree
+from logic import generate_random_numbers, Node, generate_tree, minimax, alpha_beta, print_tree
 import math
-import random
-import time
 window = tk.Tk()
 window.title("MIP praktika 1")
 window.geometry("800x800")
@@ -24,15 +22,15 @@ class GameUI:
         self.initial_generated_numbers = generate_random_numbers()
         self.initial_number = tk.IntVar()
         self.initial_number.set(self.initial_generated_numbers[0])
-        self.start_number_frame = tk.LabelFrame(window, text="Select the starting number")
+        self.start_number_frame = tk.LabelFrame(self.window, text="Select the starting number")
 
         self.first_move = tk.StringVar()
         self.first_move.set("Player") 
-        self.first_move_frame = tk.LabelFrame(window, text="Select who makes the first move")
+        self.first_move_frame = tk.LabelFrame(self.window, text="Select who makes the first move")
 
         self.selected_algorithm = tk.StringVar()
         self.selected_algorithm.set("Minimax")
-        self.algorithm_frame = tk.LabelFrame(window, text="Select the algorithm")
+        self.algorithm_frame = tk.LabelFrame(self.window, text="Select the algorithm")
 
         self.selected_divider = tk.IntVar()
 
@@ -63,15 +61,22 @@ class GameUI:
             radio.pack(pady=5, anchor='w')
         
 
-        self.start_game_button = tk.Button(window, text ="Start the game", command=self.start_game)
+        self.start_game_button = tk.Button(self.window, text ="Start the game", command=self.start_game)
         self.start_game_button.pack(anchor='w', pady=10)
 
     def clear_ui(self):
+        """
+        Removes UI elements from the window when we need to refresh or
+        move on to a new phase of the game. We destroy the labels or frames if they exist.
+        """
+        # Safely destroy each UI element if it has been created
         self.current_number_label.destroy()
         self.current_score_label.destroy()
         self.current_bank_label.destroy()
         self.start_game_button.destroy()
         self.dividers_frame.destroy()
+
+        # The following might not always exist, so we check via hasattr.
         if hasattr(self, 'computer_label'):
             self.computer_label.destroy()
         if hasattr(self, 'final_message'):
@@ -83,30 +88,32 @@ class GameUI:
         possible_moves = self.state.get_possible_moves()
         print(possible_moves)
         if not possible_moves:
-            self.final_message = tk.Label(window, text=f"Game over! Number: {self.state.number} can't be divide on 3, 4 or 5. \n Final score: {self.state.compute_final_score()}", justify='left')
+            self.final_message = tk.Label(self.window, text=f"Game over! Number: {self.state.number} can't be divide on 3, 4 or 5. \n Final score: {self.state.compute_final_score()}", justify='left')
             self.final_message.pack(anchor='w', pady=2)
 
-            self.restart_game_button = tk.Button(window, text ="Restart the game", command=self.restart_game)
+            self.restart_game_button = tk.Button(self.window, text ="Restart the game", command=self.restart_game)
             self.restart_game_button.pack(anchor='w', pady=10)
             return
 
         if not self.is_first_player_move:
-            self.computer_label = tk.Label(window, text="Computer is thinking...")
+            self.computer_label = tk.Label(self.window, text="Computer is thinking...")
             self.computer_label.pack(anchor='w', pady=2)
 
-        self.current_number_label = tk.Label(window, text=f"Current number: {self.state.number}")
+        self.current_number_label = tk.Label(self.window, text=f"Current number: {self.state.number}")
         self.current_number_label.pack(anchor='w', pady=2)
 
-        self.current_score_label = tk.Label(window, text=f"Current score: {self.state.score}")
+        self.current_score_label = tk.Label(self.window, text=f"Current score: {self.state.score}")
         self.current_score_label.pack(anchor='w', pady=2)
 
-        self.current_bank_label = tk.Label(window, text=f"Current bank: {self.state.bank}")
+        self.current_bank_label = tk.Label(self.window, text=f"Current bank: {self.state.bank}")
         self.current_bank_label.pack(anchor='w', pady=2)
 
-        self.dividers_frame = tk.LabelFrame(window, text="Select the divider")
+        self.dividers_frame = tk.LabelFrame(self.window, text="Select the divider")
         self.dividers_frame.pack(pady=(0, 20), anchor='w')  
         for i in possible_moves:
             radio = tk.Radiobutton(self.dividers_frame, text=i, variable=self.selected_divider, value=i, command=self.on_divider_selected, state= tk.NORMAL if self.is_first_player_move else tk.DISABLED)
+            # radio = tk.Button(self.dividers_frame, text=i, command=lambda:self.on_divider_selected(i), state= tk.NORMAL if self.is_first_player_move else tk.DISABLED,
+            #                   width=10, height=2, bg="green", fg='black')
             radio.pack(pady=5, anchor='w')
 
     def restart_game(self):
