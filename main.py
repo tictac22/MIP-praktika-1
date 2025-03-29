@@ -6,6 +6,7 @@ import time
 window = tk.Tk()
 window.title("MIP praktika 1")
 window.geometry("800x800")
+COMPUTER_DELAY = 100
 
 class GameUI:
     def __init__(self, window: tk.Tk):
@@ -20,19 +21,18 @@ class GameUI:
         self.window.geometry("800x800")
 
         # --- Variables for the UI ---
-        #self.initial_generated_numbers = generate_random_numbers()
-        self.initial_generated_numbers = [48300,48300,48300,48300]
+        self.initial_generated_numbers = generate_random_numbers()
         self.initial_number = tk.IntVar()
         self.initial_number.set(self.initial_generated_numbers[0])
-        self.start_number_frame = tk.Frame(window)
+        self.start_number_frame = tk.LabelFrame(window, text="Select the starting number")
 
         self.first_move = tk.StringVar()
         self.first_move.set("Player") 
-        self.first_move_frame = tk.Frame(window)
+        self.first_move_frame = tk.LabelFrame(window, text="Select who makes the first move")
 
         self.selected_algorithm = tk.StringVar()
         self.selected_algorithm.set("Minimax")
-        self.algorithm_frame = tk.Frame(window)
+        self.algorithm_frame = tk.LabelFrame(window, text="Select the algorithm")
 
         self.selected_divider = tk.IntVar()
 
@@ -74,12 +74,16 @@ class GameUI:
         self.dividers_frame.destroy()
         if hasattr(self, 'computer_label'):
             self.computer_label.destroy()
+        if hasattr(self, 'final_message'):
+            self.final_message.destroy()
+        if hasattr(self, 'restart_game_button'):
+            self.restart_game_button.destroy()
 
     def draw_ui(self):
         possible_moves = self.state.get_possible_moves()
-
+        print(possible_moves)
         if not possible_moves:
-            self.final_message = tk.Label(window, text=f"Game over! Final score: {self.state.compute_final_score()}")
+            self.final_message = tk.Label(window, text=f"Game over! Number: {self.state.number} can't be divide on 3, 4 or 5. \n Final score: {self.state.compute_final_score()}", justify='left')
             self.final_message.pack(anchor='w', pady=2)
 
             self.restart_game_button = tk.Button(window, text ="Restart the game", command=self.restart_game)
@@ -99,18 +103,18 @@ class GameUI:
         self.current_bank_label = tk.Label(window, text=f"Current bank: {self.state.bank}")
         self.current_bank_label.pack(anchor='w', pady=2)
 
-        self.dividers_frame = tk.Frame(window)
+        self.dividers_frame = tk.LabelFrame(window, text="Select the divider")
         self.dividers_frame.pack(pady=(0, 20), anchor='w')  
         for i in possible_moves:
-            radio = tk.Radiobutton(self.dividers_frame, text=i, variable=self.selected_divider, value=i, command=self.on_divider_selected)
+            radio = tk.Radiobutton(self.dividers_frame, text=i, variable=self.selected_divider, value=i, command=self.on_divider_selected, state= tk.NORMAL if self.is_first_player_move else tk.DISABLED)
             radio.pack(pady=5, anchor='w')
 
     def restart_game(self):
         self.initial_generated_numbers = generate_random_numbers()
         self.initial_number.set(self.initial_generated_numbers[0])
-        self.start_number_frame = tk.Frame(self.window)
-        self.first_move_frame = tk.Frame(self.window)
-        self.algorithm_frame = tk.Frame(self.window)
+        self.start_number_frame = tk.LabelFrame(self.window, text="Select the starting number")
+        self.first_move_frame = tk.LabelFrame(self.window, text="Select who makes the first move")
+        self.algorithm_frame = tk.LabelFrame(self.window, text="Select the algorithm")
         self.selected_divider = tk.IntVar()
         self.final_message.destroy()
         self.restart_game_button.destroy()
@@ -123,6 +127,7 @@ class GameUI:
         self.is_first_player_move = True if self.first_move.get() == "Player" else False
         self.state = Node(self.initial_number.get(), 0, 0, 0, self.is_first_player_move)
         generate_tree(self.state)
+        print_tree(self.state)
 
         if self.selected_algorithm.get() == "Minimax":
             minimax(self.state, self.is_first_player_move)
@@ -138,7 +143,7 @@ class GameUI:
         self.draw_ui()
 
         if not self.is_first_player_move:
-            self.window.after(2000, self.computer_turn)
+            self.window.after(COMPUTER_DELAY, self.computer_turn)
 
     
     def on_divider_selected(self):
@@ -152,7 +157,7 @@ class GameUI:
         self.clear_ui()
         self.draw_ui()
         if not self.is_first_player_move:
-            self.window.after(2000, self.computer_turn)
+            self.window.after(COMPUTER_DELAY, self.computer_turn)
 
 
     def computer_turn(self):

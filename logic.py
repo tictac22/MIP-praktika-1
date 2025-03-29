@@ -219,7 +219,6 @@ def alpha_beta(node, alpha, beta, is_maximizing):
             # Now we update alpha:
             if value > alpha:
                 alpha = value
-            print(f"MAX turn {child_val} {child.number} {[node.number]}  Child Score: {child.score} Child bank {child.bank}  alpha: {alpha}, beta: {beta}, value : {value} " )
             # *** Alfa-nogriešana (beta ≤ alpha) check ***
             # Because we’re in a MAX node, we watch if alpha >= beta.
             # If so, we can prune (break) => no need to explore more children.
@@ -238,7 +237,6 @@ def alpha_beta(node, alpha, beta, is_maximizing):
             # Now we update beta:
             if value < beta:
                 beta = value
-            print(f"Min turn {child_val} {child.number} {[node.number]} Child Score: {child.score} Child Bank {child.bank} alpha: {alpha}, beta: {beta}, value: {value} " )
             # *** Beta-nogriešana (beta ≤ alpha) check ***
             # Because we’re in a MIN node, we watch if beta <= alpha.
             # If so, we can prune (break).
