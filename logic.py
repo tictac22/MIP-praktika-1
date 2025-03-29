@@ -37,7 +37,9 @@ class Node:
             return self.score - self.bank
         else:
             return self.score + self.bank
-        
+    
+    def get_possible_moves(self) -> List[int]:
+        return [number for number in [3, 4, 5] if self.number % number == 0]
 
 
 
@@ -174,14 +176,6 @@ def generate_random_numbers() -> List[int]:
     return random.sample(possible_numbers, 5)
 random_numbers = generate_random_numbers()
 
-#root_number = random.choice(random_numbers)
-root_number = 48_300
-print(f"Root number is {root_number}")
-
-is_first_player_move = True
-root = Node(root_number, 0, 0, 0, is_first_player_move)
-
-
 
 def alpha_beta(node, alpha, beta, is_maximizing):
     """
@@ -209,7 +203,7 @@ def alpha_beta(node, alpha, beta, is_maximizing):
     #  16100   12075  96600 
     #  /   \
     # 4025  3220  
-    # /      /  \
+    # /      /  X
     # 805   805 644
     # /       /   \ 
     # 161    161   161
@@ -254,8 +248,16 @@ def alpha_beta(node, alpha, beta, is_maximizing):
         return value
 
 
-generate_tree(root)
-# minimax(root, is_first_player_move)
-alpha_beta(root, -math.inf, math.inf, is_first_player_move)
-print_tree(root)
-console_game(root, is_first_player_move)
+
+if __name__ == "__main__":
+    #root_number = random.choice(random_numbers)
+    root_number = 48_300
+    print(f"Root number is {root_number}")
+
+    is_first_player_move = True
+    root = Node(root_number, 0, 0, 0, is_first_player_move)
+    generate_tree(root)
+    # minimax(root, is_first_player_move)
+    alpha_beta(root, -math.inf, math.inf, is_first_player_move)
+    print_tree(root)
+    console_game(root, is_first_player_move)
