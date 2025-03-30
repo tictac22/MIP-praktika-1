@@ -85,7 +85,6 @@ class GameUI:
 
     def draw_ui(self):
         possible_moves = self.state.get_possible_moves()
-        print(possible_moves)
         if not possible_moves:
             self.final_message = tk.Label(self.window, text=
                                             f"Game over! Final Number: {self.state.number} can't be divide on 3, 4 or 5. \n"
