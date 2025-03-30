@@ -1,7 +1,6 @@
 import tkinter as tk
 from logic import generate_random_numbers, Node, generate_tree, minimax, alpha_beta
 import math
-from testing import print_tree
 window = tk.Tk()
 window.title("MIP praktika 1")
 window.geometry("800x800")
@@ -37,7 +36,7 @@ class GameUI:
 
         self.generate_initial_ui()
 
-    def generate_initial_ui(self):
+    def generate_initial_ui(self) -> None:
         # --- Radio buttons for selecting the starting number ---
         self.start_number_frame.pack(pady=(0, 20), anchor='center')  # Adds padding below the group
         for i in self.initial_generated_numbers:
@@ -63,7 +62,7 @@ class GameUI:
         self.start_game_button = tk.Button(self.window, text ="Start the game", command=self.start_game)
         self.start_game_button.pack(anchor='center', pady=10)
 
-    def clear_ui(self):
+    def clear_ui(self) -> None:
         """
         Removes UI elements from the window when we need to refresh or
         move on to a new phase of the game. We destroy the labels or frames if they exist.
@@ -83,7 +82,7 @@ class GameUI:
         if hasattr(self, 'restart_game_button'):
             self.restart_game_button.destroy()
 
-    def draw_ui(self):
+    def draw_ui(self) -> None:
         possible_moves = self.state.get_possible_moves()
         if not possible_moves:
             self.final_message = tk.Label(self.window, text=
@@ -117,7 +116,7 @@ class GameUI:
             radio = tk.Radiobutton(self.dividers_frame, text=i, variable=self.selected_divider, value=i, command=self.on_divider_selected, state= tk.NORMAL if self.is_first_player_move else tk.DISABLED)
             radio.pack(pady=5, anchor='center')
 
-    def restart_game(self):
+    def restart_game(self) -> None:
         self.initial_generated_numbers = generate_random_numbers()
         self.initial_number.set(self.initial_generated_numbers[0])
         self.start_number_frame = tk.LabelFrame(self.window, text="Select the starting number")
@@ -130,7 +129,7 @@ class GameUI:
         self.generate_initial_ui()
 
 
-    def start_game(self):
+    def start_game(self) -> None:
         self.is_first_player_move = True if self.first_move.get() == "Player" else False
         self.state = Node(self.initial_number.get(), 0, 0, 0, self.is_first_player_move)
         generate_tree(self.state)
@@ -152,7 +151,7 @@ class GameUI:
             self.window.after(COMPUTER_DELAY, self.computer_turn)
 
     
-    def on_divider_selected(self):
+    def on_divider_selected(self) -> None:
         selected_divider = self.selected_divider.get()
         for i in self.state.children:
             if i.divisor == selected_divider:
@@ -166,7 +165,7 @@ class GameUI:
             self.window.after(COMPUTER_DELAY, self.computer_turn)
 
 
-    def computer_turn(self):
+    def computer_turn(self) -> None:
         # If it's computer's turn, we look at 'self.state.is_first_player_move' to see
         # which side is the computer right now. If is_first_player_move = True => it's MAX's turn,
         # if False => it's MIN's turn. But you might store a separate boolean if you want the
