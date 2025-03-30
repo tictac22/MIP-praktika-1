@@ -1,10 +1,11 @@
 import tkinter as tk
-from logic import generate_random_numbers, Node, generate_tree, minimax, alpha_beta, print_tree
+from logic import generate_random_numbers, Node, generate_tree, minimax, alpha_beta
 import math
+from testing import print_tree
 window = tk.Tk()
 window.title("MIP praktika 1")
 window.geometry("800x800")
-COMPUTER_DELAY = 100
+COMPUTER_DELAY = 500
 
 class GameUI:
     def __init__(self, window: tk.Tk):
@@ -36,33 +37,31 @@ class GameUI:
 
         self.generate_initial_ui()
 
-        self.is_first_player_move = True if self.first_move.get() == "Player" else False
-
     def generate_initial_ui(self):
         # --- Radio buttons for selecting the starting number ---
-        self.start_number_frame.pack(pady=(0, 20), anchor='w')  # Adds padding below the group
+        self.start_number_frame.pack(pady=(0, 20), anchor='center')  # Adds padding below the group
         for i in self.initial_generated_numbers:
             radio = tk.Radiobutton(self.start_number_frame, text=i, variable=self.initial_number, value=i)
-            radio.pack(pady=5, anchor='w')
+            radio.pack(pady=5, anchor='center')
 
 
         # --- Frame for first move options ---
-        self.first_move_frame.pack(pady=(0, 20), anchor='w')  
+        self.first_move_frame.pack(pady=(0, 20), anchor='center')  
         first_moves_options = ["Player", "Computer"]
         for i in first_moves_options:
             radio = tk.Radiobutton(self.first_move_frame, text=i, variable=self.first_move, value=i)
-            radio.pack(pady=5, anchor='w')
+            radio.pack(pady=5, anchor='center')
         
         # --- Frame for algorithm options ---
-        self.algorithm_frame.pack(pady=(0, 20), anchor='w')  
+        self.algorithm_frame.pack(pady=(0, 20), anchor='center')  
         algorithm_options = ["Minimax", "Alpha-beta"]
         for i in algorithm_options:
             radio = tk.Radiobutton(self.algorithm_frame, text=i, variable=self.selected_algorithm, value=i)
-            radio.pack(pady=5, anchor='w')
+            radio.pack(pady=5, anchor='center')
         
 
         self.start_game_button = tk.Button(self.window, text ="Start the game", command=self.start_game)
-        self.start_game_button.pack(anchor='w', pady=10)
+        self.start_game_button.pack(anchor='center', pady=10)
 
     def clear_ui(self):
         """
@@ -88,33 +87,36 @@ class GameUI:
         possible_moves = self.state.get_possible_moves()
         print(possible_moves)
         if not possible_moves:
-            self.final_message = tk.Label(self.window, text=f"Game over! Number: {self.state.number} can't be divide on 3, 4 or 5. \n Final score: {self.state.compute_final_score()}", justify='left')
-            self.final_message.pack(anchor='w', pady=2)
+            self.final_message = tk.Label(self.window, text=
+                                            f"Game over! Final Number: {self.state.number} can't be divide on 3, 4 or 5. \n"
+                                            f"Score: {self.state.score} Bank: {self.state.bank} \n"
+                                            f"Final score: {self.state.compute_final_score()}", 
+                                            justify='center'
+                                          )
+            self.final_message.pack(anchor='center', pady=2)
 
             self.restart_game_button = tk.Button(self.window, text ="Restart the game", command=self.restart_game)
-            self.restart_game_button.pack(anchor='w', pady=10)
+            self.restart_game_button.pack(anchor='center', pady=10)
             return
 
         if not self.is_first_player_move:
             self.computer_label = tk.Label(self.window, text="Computer is thinking...")
-            self.computer_label.pack(anchor='w', pady=2)
+            self.computer_label.pack(anchor='center', pady=2)
 
         self.current_number_label = tk.Label(self.window, text=f"Current number: {self.state.number}")
-        self.current_number_label.pack(anchor='w', pady=2)
+        self.current_number_label.pack(anchor='center', pady=2)
 
         self.current_score_label = tk.Label(self.window, text=f"Current score: {self.state.score}")
-        self.current_score_label.pack(anchor='w', pady=2)
+        self.current_score_label.pack(anchor='center', pady=2)
 
         self.current_bank_label = tk.Label(self.window, text=f"Current bank: {self.state.bank}")
-        self.current_bank_label.pack(anchor='w', pady=2)
+        self.current_bank_label.pack(anchor='center', pady=2)
 
         self.dividers_frame = tk.LabelFrame(self.window, text="Select the divider")
-        self.dividers_frame.pack(pady=(0, 20), anchor='w')  
+        self.dividers_frame.pack(pady=(0, 20), anchor='center')  
         for i in possible_moves:
             radio = tk.Radiobutton(self.dividers_frame, text=i, variable=self.selected_divider, value=i, command=self.on_divider_selected, state= tk.NORMAL if self.is_first_player_move else tk.DISABLED)
-            # radio = tk.Button(self.dividers_frame, text=i, command=lambda:self.on_divider_selected(i), state= tk.NORMAL if self.is_first_player_move else tk.DISABLED,
-            #                   width=10, height=2, bg="green", fg='black')
-            radio.pack(pady=5, anchor='w')
+            radio.pack(pady=5, anchor='center')
 
     def restart_game(self):
         self.initial_generated_numbers = generate_random_numbers()
@@ -130,11 +132,9 @@ class GameUI:
 
 
     def start_game(self):
-        print("you selected", self.initial_number.get(), self.first_move.get(), self.selected_algorithm.get())
         self.is_first_player_move = True if self.first_move.get() == "Player" else False
         self.state = Node(self.initial_number.get(), 0, 0, 0, self.is_first_player_move)
         generate_tree(self.state)
-        print_tree(self.state)
 
         if self.selected_algorithm.get() == "Minimax":
             minimax(self.state, self.is_first_player_move)

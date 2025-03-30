@@ -1,6 +1,5 @@
 import random
-from logic import generate_random_numbers, Node, generate_tree, minimax, alpha_beta, print_tree
-import math
+from logic import generate_random_numbers, Node, generate_tree, minimax, alpha_beta
 def console_game(root: Node, first_move: bool) -> None:
     print("Welcome to the game")
     print(f"The game starts with the number {root_number}")
@@ -61,30 +60,30 @@ def print_tree(root: Node) -> None:
     while queue:
         node = queue.pop(0)
         if not node.children:
-            print(f" Number : {node.number} Score : {node.score} Bank : {node.bank}, counter : {node.id}, final_score: {node.compute_final_score()}, min_max_value: {node.min_max_value}")
+            print(f" Number : {node.number} Score : {node.score} Bank : {node.bank}, final_score: {node.compute_final_score()}, min_max_value: {node.min_max_value}, divisor: {node.divisor}, counter: {node.counter}")
         else:
             print(
                 f"Number : {node.number} " 
                 f"Score : {node.score} " 
                 f"Bank : {node.bank} "
-                f"counter : {node.id} "
                 f"min_max_value: {node.min_max_value} "
                 f"children:{ [children.number for children in node.children] } "
                 f"children_min_max_value: { [children.min_max_value for children in node.children] } "
                 f"children_score : {[children.score for children in node.children ]} "
                 f"children_bank : {[children.bank for children in node.children ]} "
-
+                f"divisor : {node.divisor} "
+                f"counter : {node.counter}"
             )
            
         for child in node.children:
             queue.append(child)
 
 if __name__ == "__main__":
-    root_number = 48_300
+    root_number = 48300
     is_first_player_move = True
     root = Node(root_number, 0, 0, 0, is_first_player_move)
     generate_tree(root)
-    # minimax(root, is_first_player_move)
-    alpha_beta(root, -math.inf, math.inf, is_first_player_move)
+    minimax(root, is_first_player_move)
     print_tree(root)
+    #alpha_beta(root, -math.inf, math.inf, is_first_player_move)
     console_game(root, is_first_player_move)

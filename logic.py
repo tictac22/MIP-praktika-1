@@ -1,7 +1,7 @@
 import random
 import math
 from typing import List 
-
+counter = 0
 class Node:
     """
     Represents a state in the game tree.
@@ -15,6 +15,9 @@ class Node:
       - children (list of Node objects we can move to from here).
     """
     def __init__(self, number: int, score: int, bank: int, divisor: int, is_first_player_move: bool):
+        global counter
+        counter+= 1
+        self.counter = counter
         self.number = number
         self.score = score
         self.bank = bank
@@ -32,14 +35,14 @@ class Node:
         # children: holds the next possible states (Node objects) after making valid moves.
         self.children = []
 
-    def make_move(self, divisor: int) -> None:
+    def make_move(self) -> None:
         """
         Applies a move to the current node by dividing the 'number' by 'divisor' (3, 4, or 5).
         Then it updates the bank if the resulting 'number' ends with 0 or 5.
         Also updates the score: +1 if the new number is even, -1 if it's odd.
         Finally, toggles is_first_player_move to switch turns.
         """
-        self.number //= divisor
+        self.number //= self.divisor
 
         # Check the last digit. If it's '0' or '5', increment the bank by 1.
         last_digit = str(self.number)[-1]
@@ -87,7 +90,7 @@ def create_child(parent: Node, divisor: int) -> Node:
         divisor=divisor,
         is_first_player_move=parent.is_first_player_move
     )
-    child.make_move(divisor)
+    child.make_move()
     return child
 
 
@@ -104,16 +107,20 @@ def generate_tree(root: Node) -> None:
     generated_states = {}
 
     while queue:
-        node = queue.pop(0)
+        current_node = queue.pop(0)
         for i in [3, 4, 5]:
-            if node.number % i == 0:
-                child = create_child(node, i)
-                # We define a key so we don't create duplicate children that are essentially the same state
+            if current_node.number % i == 0:
+                child = create_child(current_node, i)
+                # We define a key so we don't create duplicate children
                 key = (child.number, child.score, child.bank, child.is_first_player_move, child.divisor)
                 if key not in generated_states:
-                    generated_states[key] = True
-                    node.children.append(child)
+                    generated_states[key] = child
+                    current_node.children.append(child)
                     queue.append(child)
+                else:
+                    existing_node = generated_states[key]
+                    current_node.children.append(existing_node)
+
 
 
 def minimax(node: Node, is_first_player_move: bool) -> None:
