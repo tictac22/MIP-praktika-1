@@ -21,7 +21,7 @@ def console_game(root: Node, first_move: bool) -> None:
             print("Computer thinking")
             best_move = 0
             for child in current_node.children:
-                if child.min_max_value == -1:
+                if child.evaluation_value == -1:
                     best_move = child.number
                     break
             if best_move == 0:
@@ -60,15 +60,15 @@ def print_tree(root: Node) -> None:
     while queue:
         node = queue.pop(0)
         if not node.children:
-            print(f" Number : {node.number} Score : {node.score} Bank : {node.bank}, final_score: {node.compute_final_score()}, min_max_value: {node.min_max_value}, divisor: {node.divisor}, counter: {node.counter}")
+            print(f" Number : {node.number} Score : {node.score} Bank : {node.bank}, final_score: {node.compute_final_score()}, evaluation_value: {node.evaluation_value}, divisor: {node.divisor}, counter: {node.counter}")
         else:
             print(
                 f"Number : {node.number} " 
                 f"Score : {node.score} " 
                 f"Bank : {node.bank} "
-                f"min_max_value: {node.min_max_value} "
+                f"evaluation_value: {node.evaluation_value} "
                 f"children:{ [children.number for children in node.children] } "
-                f"children_min_max_value: { [children.min_max_value for children in node.children] } "
+                f"children_evaluation_value: { [children.evaluation_value for children in node.children] } "
                 f"children_score : {[children.score for children in node.children ]} "
                 f"children_bank : {[children.bank for children in node.children ]} "
                 f"divisor : {node.divisor} "

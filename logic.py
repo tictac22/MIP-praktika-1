@@ -10,7 +10,7 @@ class Node:
       - score (the 'common score'),
       - bank  (the 'bank' value),
       - divisor (the last divisor used to reach this node),
-      - min_max_value (used by minimax / alpha-beta search),
+      - evaluation_value (used by minimax / alpha-beta search),
       - is_first_player_move (boolean indicating whose turn it is),
       - children (list of Node objects we can move to from here).
     """
@@ -23,10 +23,10 @@ class Node:
         self.bank = bank
         self.divisor = divisor
 
-        # min_max_value: used during minimax or alpha-beta. If it's first player's turn, we initialize to +∞,
+        # evaluation_value: used during minimax or alpha-beta. If it's first player's turn, we initialize to +∞,
         # because the MAX player tries to get the highest value.
         # If it's second player's turn, we initialize to -∞, because the MIN player tries to get the lowest value.
-        self.min_max_value = math.inf if is_first_player_move else -math.inf
+        self.evaluation_value = math.inf if is_first_player_move else -math.inf
 
         # is_first_player_move: True if it's the first player's turn (the "maximizing" player),
         # False if it's the second player's turn (the "minimizing" player).
@@ -136,9 +136,9 @@ def minimax(node: Node, is_first_player_move: bool) -> None:
         final_score = node.compute_final_score()
         # Even final => +1, Odd => -1
         if final_score % 2 == 0:
-            node.min_max_value = 1
+            node.evaluation_value = 1
         else:
-            node.min_max_value = -1
+            node.evaluation_value = -1
         
     # Otherwise, explore children
     for child in node.children:
@@ -149,10 +149,10 @@ def minimax(node: Node, is_first_player_move: bool) -> None:
     if node.children:
         if is_first_player_move:
             # The 'maximizing' player => choose the best (max) among children
-            node.min_max_value = max(child.min_max_value for child in node.children)
+            node.evaluation_value = max(child.evaluation_value for child in node.children)
         else:
             # The 'minimizing' player => choose the worst (min) among children
-            node.min_max_value = min(child.min_max_value for child in node.children)
+            node.evaluation_value = min(child.evaluation_value for child in node.children)
 
 
 def generate_random_numbers() -> List[int]:
@@ -174,7 +174,7 @@ def alpha_beta(node: Node, alpha: int, beta: int, is_maximizing: bool) -> int:
     beta:        the lowest (best) value so far for the minimizing player (initially very large).
     is_maximizing: True if it's the maximizing player's turn, False if it's the minimizing player's turn.
     
-    The function returns the 'min_max_value' for 'node'.
+    The function returns the 'evaluation_value' for 'node'.
     
     Pruning logic:
     - If alpha >= beta at a MAX node, we stop exploring (beta cutoff).
@@ -185,10 +185,10 @@ def alpha_beta(node: Node, alpha: int, beta: int, is_maximizing: bool) -> int:
     if not node.children:
         final_score = node.compute_final_score()
         if final_score % 2 == 0:
-            node.min_max_value = +1
+            node.evaluation_value = +1
         else:
-            node.min_max_value = -1
-        return node.min_max_value
+            node.evaluation_value = -1
+        return node.evaluation_value
 
     # 2) If it's the MAX player's turn:
     if is_maximizing:
@@ -205,7 +205,7 @@ def alpha_beta(node: Node, alpha: int, beta: int, is_maximizing: bool) -> int:
             # If alpha >= beta, we can stop searching further children (beta cut)
             if alpha >= beta:
                 break
-        node.min_max_value = value
+        node.evaluation_value = value
         return value
 
     # 3) Otherwise, it's the MIN player's turn:
@@ -223,5 +223,5 @@ def alpha_beta(node: Node, alpha: int, beta: int, is_maximizing: bool) -> int:
             # If beta <= alpha, we can stop searching further (alpha cut)
             if beta <= alpha:
                 break
-        node.min_max_value = value
+        node.evaluation_value = value
         return value

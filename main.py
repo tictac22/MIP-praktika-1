@@ -20,7 +20,7 @@ class GameUI:
         self.window.geometry("800x800")
 
         # --- Variables for the UI ---
-        self.initial_generated_numbers = generate_random_numbers()
+        self.initial_generated_numbers = [48300]
         self.initial_number = tk.IntVar()
         self.initial_number.set(self.initial_generated_numbers[0])
         self.start_number_frame = tk.LabelFrame(self.window, text="Select the starting number")
@@ -167,10 +167,32 @@ class GameUI:
 
 
     def computer_turn(self):
-        for i in self.state.children:
-            if i.min_max_value == -1:
-                self.state = i
-                break
+        # If it's computer's turn, we look at 'self.state.is_first_player_move' to see
+        # which side is the computer right now. If is_first_player_move = True => it's MAX's turn,
+        # if False => it's MIN's turn. But you might store a separate boolean if you want the
+        # computer always to be second, etc.
+        if self.is_first_player_move:
+            #The computer is the MAX player
+            # Choose the child with the highest evaluation_value
+            highest_value = -math.inf
+            best_child = None
+            for children in self.state.children:
+                if children.evaluation_value > highest_value:
+                    highest_value = children.evaluation_value
+                    best_child = children
+            if best_child:
+                self.state = best_child
+        else:
+            # The computer is the MIN player
+            # Choose the child with the lowest evaluation_value
+            lowest_value = math.inf
+            best_child = None
+            for children in self.state.children:
+                if children.evaluation_value < lowest_value:
+                    lowest_value = children.evaluation_value
+                    best_child = children
+            if best_child:
+                self.state = best_child
         self.is_first_player_move = not self.is_first_player_move
         self.clear_ui()
         self.draw_ui()
