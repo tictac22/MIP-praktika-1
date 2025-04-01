@@ -60,7 +60,7 @@ def print_tree(root: Node) -> None:
     while queue:
         node = queue.pop(0)
         if not node.children:
-            print(f" Number : {node.number} Score : {node.score} Bank : {node.bank}, final_score: {node.compute_final_score()}, evaluation_value: {node.evaluation_value}, divisor: {node.divisor}, counter: {node.counter}")
+            print(f" Number : {node.number} Score : {node.score} Bank : {node.bank}, final_score: {node.compute_final_score()}, evaluation_value: {node.evaluation_value}, divisor: {node.divisor}")
         else:
             print(
                 f"Number : {node.number} " 
@@ -72,7 +72,6 @@ def print_tree(root: Node) -> None:
                 f"children_score : {[children.score for children in node.children ]} "
                 f"children_bank : {[children.bank for children in node.children ]} "
                 f"divisor : {node.divisor} "
-                f"counter : {node.counter}"
             )
            
         for child in node.children:

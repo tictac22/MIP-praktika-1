@@ -1,7 +1,6 @@
 import random
 import math
 from typing import List 
-counter = 0
 class Node:
     """
     Represents a state in the game tree.
@@ -15,9 +14,6 @@ class Node:
       - children (list of Node objects we can move to from here).
     """
     def __init__(self, number: int, score: int, bank: int, divisor: int, is_first_player_move: bool):
-        global counter
-        counter+= 1
-        self.counter = counter
         self.number = number
         self.score = score
         self.bank = bank
