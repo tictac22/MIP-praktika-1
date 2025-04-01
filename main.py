@@ -19,7 +19,7 @@ class GameUI:
         self.window.geometry("800x800")
 
         # --- Variables for the UI ---
-        self.initial_generated_numbers = [48300]
+        self.initial_generated_numbers = generate_random_numbers()
         self.initial_number = tk.IntVar()
         self.initial_number.set(self.initial_generated_numbers[0])
         self.start_number_frame = tk.LabelFrame(self.window, text="Select the starting number")
